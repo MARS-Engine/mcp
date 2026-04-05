@@ -62,7 +62,7 @@ struct IssueData {
 long long get_timestamp(const std::string& path) {
     try {
         if (!fs::exists(path)) return 0;
-        return std::chrono::duration_cast<std::chrono::seconds>(fs::last_write_time(path).time_since_epoch()).count();
+        return std::chrono::duration_cast<std::chrono::milliseconds>(fs::last_write_time(path).time_since_epoch()).count();
     } catch(...) { return 0; }
 }
 
@@ -164,7 +164,7 @@ void parse_worker(const json& compdb, const std::string& project_root, const std
         bool skip_parsing = false;
         {
             std::lock_guard<std::mutex> lock(output_mutex);
-            if (old_cache.contains("timestamps") && old_cache["timestamps"].value(file_path, 0LL) == current_time) {
+            if (current_time != 0 && old_cache.contains("timestamps") && old_cache["timestamps"].value(file_path, 0LL) == current_time) {
                 bool was_clean = !old_cache.contains("diagnostics") || 
                                  !old_cache["diagnostics"].contains(file_path) || 
                                  old_cache["diagnostics"][file_path].empty();
@@ -172,7 +172,9 @@ void parse_worker(const json& compdb, const std::string& project_root, const std
                 bool deps_changed = false;
                 if (old_cache.contains("dependencies") && old_cache["dependencies"].contains(file_path)) {
                     for (auto& [dep_path, old_ts] : old_cache["dependencies"][file_path].items()) {
-                        if (get_timestamp(dep_path) > old_ts.get<long long>()) {
+                        long long cached_dep_ts = old_ts.get<long long>();
+                        long long current_dep_ts = get_timestamp(dep_path);
+                        if (cached_dep_ts == 0 || current_dep_ts == 0 || current_dep_ts > cached_dep_ts) {
                             deps_changed = true;
                             break;
                         }

@@ -29,6 +29,11 @@ async def handle_list_tools() -> list[types.Tool]:
                         "type": "string",
                         "description": "Path to the build directory containing compile_commands.json (default: 'build')",
                         "default": "build"
+                    },
+                    "invalidate_cache": {
+                        "type": "boolean",
+                        "description": "Delete the timestamp cache before running, forcing a full re-parse. Use after git apply or when timestamps may be unreliable.",
+                        "default": False
                     }
                 },
             },
@@ -53,6 +58,12 @@ async def handle_call_tool(
 
     arguments = arguments or {}
     build_dir = arguments.get("build_dir", "build")
+    invalidate_cache = arguments.get("invalidate_cache", False)
+
+    if invalidate_cache:
+        cache_path = os.path.join(build_dir, "mcp_cache.json")
+        if os.path.exists(cache_path):
+            os.remove(cache_path)
 
     # Construct arguments for the C++ binary
     # We now always force the --errors flag and removed the warnings option
