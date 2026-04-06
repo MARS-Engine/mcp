@@ -12,6 +12,7 @@ import mcp.types as types
 
 import compile.server as compile_tool
 import server_compile.server as server_compile_tool
+import submodule_list.server as submodule_list_tool
 
 # Inject webhook base URL from CLI arg, e.g.: python server.py http://<host>:<port>
 if len(sys.argv) >= 2:
@@ -22,6 +23,7 @@ server = Server("render-visualizer-tools")
 TOOLS = {
     compile_tool.TOOL.name: compile_tool,
     server_compile_tool.TOOL.name: server_compile_tool,
+    submodule_list_tool.TOOL.name: submodule_list_tool,
 }
 
 
