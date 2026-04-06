@@ -211,7 +211,7 @@ void parse_worker(const json& compdb, const std::string& project_root, const std
         
         if (!raw_args.empty()) {
             std::string compiler = fs::path(raw_args[0]).filename().string();
-            if (compiler.find("cl") != std::string::npos) final_args.push_back("--driver-mode=cl");
+            if (compiler == "cl" || compiler == "cl.exe") final_args.push_back("--driver-mode=cl");
         }
 
         for (size_t j = 1; j < raw_args.size(); ++j) {
@@ -245,7 +245,7 @@ void parse_worker(const json& compdb, const std::string& project_root, const std
             for (unsigned d = 0; d < num_diags; ++d) {
                 CXDiagnostic diag = clang_getDiagnostic(tu, d);
                 auto severity = clang_getDiagnosticSeverity(diag);
-                
+
                 bool is_error = (severity >= CXDiagnostic_Error);
                 bool is_warning = (severity == CXDiagnostic_Warning);
 
@@ -469,6 +469,7 @@ int main(int argc, char** argv) {
         }
         if (!args.empty()) global_resource_dir = find_resource_dir(args[0]);
     }
+
 
     std::string cache_file = cfg.build_dir + "/mcp_cache.json";
     std::ifstream c(cache_file);

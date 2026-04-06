@@ -3,7 +3,8 @@ import json
 import os
 import mcp.types as types
 
-COMPILER_BIN = os.path.abspath("./tools/mcp/compile/build/compiler.exe")
+_exe = ".exe" if os.name == "nt" else ""
+COMPILER_BIN = os.path.abspath(f"./tools/mcp/compile/build/compiler{_exe}")
 
 TOOL = types.Tool(
     name="local_compile",
