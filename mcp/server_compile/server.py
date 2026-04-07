@@ -9,7 +9,7 @@ webhook_base_url: str = ""
 TOOL = types.Tool(
     name="server_compile",
     description=(
-        "Collects git diff output for a project and its submodules, then sends the result to the configured webhook and returns the response. "
+        "Collects staged git diff output for a project and its submodules, then sends the result to the configured webhook and returns the response. "
         "IMPORTANT: You MUST call the submodule_list tool first to retrieve the submodule paths, then pass the returned list directly as submodule_paths. "
         "Do NOT skip this step or guess submodule paths manually."
     ),
@@ -62,13 +62,13 @@ def _run(project_path: str, submodule_paths: list[str]) -> str:
     repo_root = os.path.abspath(_git(["rev-parse", "--show-toplevel"]).strip())
 
     proj_name, proj_git_path = _resolve(repo_root, project_path)
-    proj_diff = _git(["diff", "--", proj_git_path], cwd=repo_root)
+    proj_diff = _git(["diff", "--cached", "--", proj_git_path], cwd=repo_root)
 
     submodules = []
     for sub_path in submodule_paths:
         sub_name, sub_git_path = _resolve(repo_root, sub_path)
         sub_dir = os.path.join(repo_root, sub_git_path)
-        sub_diff = _git(["diff"], cwd=sub_dir)
+        sub_diff = _git(["diff", "--cached"], cwd=sub_dir)
         submodules.append({"project": sub_name, "diff": sub_diff})
 
     if not proj_diff.strip() and not any(s["diff"].strip() for s in submodules):
